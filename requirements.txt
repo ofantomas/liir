@@ -9,7 +9,7 @@ enum34==1.1.6
 future==0.16.0
 idna==2.7
 imageio==2.4.1
-jsonpickle==0.9.6
+jsonpickle==1.2
 kiwisolver==1.0.1
 matplotlib==3.0.0
 mock==2.0.0
@@ -37,8 +37,6 @@ six==1.11.0
 sk-video==1.1.10
 snakeviz==1.0.0
 tensorboard-logger==0.1.0
-torch==1.10.2
-torchvision==0.2.1
 tornado==5.1.1
 websocket-client==0.53.0
 whichcraft==0.5.2
