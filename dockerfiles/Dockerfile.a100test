@@ -1,0 +1,18 @@
+FROM cr.msk.sbercloud.ru/aicloud-jupyter/jupyter-cuda11.1-pt1.8.1-gpu-a100
+
+ENV CONFIG "liir_smac"
+ENV ENV-CONFIG "sc2"
+ENV MAP "3m"
+
+COPY . .
+
+# Install Dependencies
+RUN pip install -r requirements.txt \
+&& pip install torch==0.4.1.post2 -f https://download.pytorch.org/whl/torch_stable.html
+
+# Install StarCraft2 and Maps
+RUN bash install_sc2.sh
+
+# RUN training
+
+CMD ["python3", "src/main.py", "--config=liir_smac", "--env-config=sc2", "--map=3m"]

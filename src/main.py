@@ -1,3 +1,4 @@
+import argparse
 import numpy as np
 import os
 import collections
@@ -30,27 +31,20 @@ results_path = os.path.join(dirname(dirname(abspath(__file__))), "results")
 @ex.main
 def my_main(_run, _config, _log, env_args):
     # Setting the random seed of the environment
+    print('my_main')
     env_args['seed'] = _config["seed"]
 
     # run the framework
     run(_run, _config, _log)
 
 
-def _get_config(params, arg_name, subfolder):
-    config_name = None
-    for _i, _v in enumerate(params):
-        if _v.split("=")[0] == arg_name:
-            config_name = _v.split("=")[1]
-            del params[_i]
-            break
-
-    if config_name is not None:
-        with open(os.path.join(os.path.dirname(__file__), "config", subfolder, "{}.yaml".format(config_name)), "r") as f:
-            try:
-                config_dict = yaml.safe_load(f)
-            except yaml.YAMLError as exc:
-                assert False, "{}.yaml error: {}".format(config_name, exc)
-        return config_dict
+def _get_config(config_name, subfolder):
+    with open(os.path.join(os.path.dirname(__file__), "config", subfolder, "{}.yaml".format(config_name)), "r") as f:
+        try:
+            config_dict = yaml.safe_load(f)
+        except yaml.YAMLError as exc:
+            assert False, "{}.yaml error: {}".format(config_name, exc)
+    return config_dict
 
 
 def recursive_dict_update(d, u):
@@ -63,7 +57,14 @@ def recursive_dict_update(d, u):
 
 
 if __name__ == '__main__':
-    params = deepcopy(sys.argv)
+    # delete arguments from sys.argv
+    params = deepcopy(sys.argv)[0]
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--env-config", default="sc2", type=str) # Environment config
+    parser.add_argument("--config", default="liir_smac", type=str) # Algorithm config
+    parser.add_argument("--map", default="", type=str) # Map name
+    args = parser.parse_args()
+
     # Get the defaults from default.yaml
     with open(os.path.join(os.path.dirname(__file__), "config", "default.yaml"), "r") as f:
         try:
@@ -71,26 +72,22 @@ if __name__ == '__main__':
         except yaml.YAMLError as exc:
             assert False, "default.yaml error: {}".format(exc)
     # Load algorithm and env base configs
-    env_config = _get_config(params, "--env-config", "envs")
-    alg_config = _get_config(params, "--config", "algs")
+    env_config = _get_config(args.env_config, "envs")
+    alg_config = _get_config(args.config, "algs")
     config_dict = recursive_dict_update(config_dict, env_config)
     config_dict = recursive_dict_update(config_dict, alg_config)
     
     # specify the map for experiment
-    map_name = None
-    for _i, _v in enumerate(params):
-        if _v.split("=")[0] == "--map":
-            map_name = _v.split("=")[1]
-            del params[_i]
-            break
-    if map_name:
-        config_dict['env_args']['map_name'] = map_name
-    else: 
-        map_name = config_dict['env_args']['map_name'] 
-        
-    # now add all the config to sacred
 
+    if args.map == "":
+        map_name = config_dict['env_args']['map_name']
+    else:
+        map_name = args.map
+        config_dict['env_args']['map_name'] = map_name
+    # now add all the config to sacred
+    print(params)
     ex.add_config(config_dict)
+
 
     # Save to disk by default for sacred
     unique_token = "{}_{}_{}".format(config_dict['name'], map_name, datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S"))
@@ -98,4 +95,3 @@ if __name__ == '__main__':
     file_obs_path = os.path.join(results_path, "sacred", unique_token)
     ex.observers.append(FileStorageObserver.create(file_obs_path))
     ex.run_commandline(params)
-

@@ -3,7 +3,7 @@ env: sc2
 env_args:
   continuing_episode: False
   difficulty: "7"
-  game_version: "4.1.4"
+  game_version: "4.10.0"
   map_name: "3m"
   move_amount: 2
   obs_all_health: True
@@ -26,10 +26,10 @@ env_args:
   step_mul: 8
   debug: False
 
-learner_log_interval: 20000
-log_interval: 20000
-runner_log_interval: 20000
+learner_log_interval: 1000
+log_interval: 1000
+runner_log_interval: 1000
 t_max: 10050000
-test_interval: 20000
-test_nepisode: 24
+test_interval: 1000
+test_nepisode: 5
 test_greedy: True
